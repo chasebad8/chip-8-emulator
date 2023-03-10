@@ -1,26 +1,11 @@
 #include <iostream>
-#include "common_types.h"
 #include "cpu.h"
-
-void cpuNULL(uint16_t, uint16_t, uint16_t)
-{
-	// Do Nothing
-}
-
-void (*opcode_table[NUM_OF_OPCODES])(uint16_t, uint16_t, uint16_t) =
-{
-   cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL,
-   cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL,
-   cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL,
-   cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL, cpuNULL,
-   cpuNULL, cpuNULL, cpuNULL
-};
 
 rc_e CPU::fetch()
 {
    return SUCCESS;
 }
-
+ 
 rc_e CPU::decode()
 {
    return SUCCESS;
@@ -28,14 +13,8 @@ rc_e CPU::decode()
 
 rc_e CPU::execute()
 {
+   opcodes.opcode_table[OP_00E0](0, 0, 0);
+   opcodes.opcode_table[OP_00E0+1](0, 0, 0);
+   opcodes.opcode_table[OP_00E0+2](0, 0, 0);
    return SUCCESS;
-}
-
-int main() {
-   std::cout << "Hello World!\n";
-
-   CPU cpu;
-   cpu.decode();
-
-   return 0;
 }

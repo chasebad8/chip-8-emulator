@@ -34,3 +34,6 @@ chip-8
 
 #Object directory
 obj
+
+#vscode
+.vs*
