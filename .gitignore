@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+chip-8
+
+#Object directory
+obj

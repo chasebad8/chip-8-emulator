@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+#include "common_types.h"
+
 typedef enum opcodes
 {
    OP_00E0,
@@ -55,7 +57,7 @@ typedef enum opcodes
    OP_FX55,
    OP_FX65,
 
-   NUM_OF_OPCODES = OP_FX65
+   NUM_OF_OPCODES
 
 } opcodes;
 
@@ -87,4 +89,10 @@ class CPU
       rc_e fetch();
       rc_e decode();
       rc_e execute();
+};
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* __CPU_H__ */
