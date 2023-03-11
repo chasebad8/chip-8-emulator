@@ -21,47 +21,103 @@ extern "C" {
 #include "common_types.h"
 #include "cpu.h"
 
+typedef uint16_t opcode_t;
 typedef enum opcodes_e
 {
-   OP_00E0,
-   OP_00EE,
-   OP_0NNN,
-   OP_1NNN,
-   OP_2NNN,
-   OP_3XNN,
-   OP_4XNN,
-   OP_5XY0,
-   OP_6XNN,
-   OP_7XNN,
-   OP_8XY0,
-   OP_8XY1,
-   OP_8XY2,
-   OP_8XY3,
-   OP_8XY4,
-   OP_8XY5,
-   OP_8XY6,
-   OP_8XY7,
-   OP_8XYE,
-   OP_9XY0,
-   OP_ANNN,
-   OP_BNNN,
-   OP_CXNN,
-   OP_DXYN,
-   OP_EX9E,
-   OP_EXA1,
-   OP_FX07,
-   OP_FX0A,
-   OP_FX15,
-   OP_FX18,
-   OP_FX1E,
-   OP_FX29,
-   OP_FX33,
-   OP_FX55,
-   OP_FX65,
+   OP_0XXX,
+   OP_1XXX,
+   OP_2XXX,
+   OP_3XXX,
+   OP_4XXX,
+   OP_5XXX,
+   OP_6XXX,
+   OP_7XXX,
+   OP_8XXX,
+   OP_9XXX,
+   OP_AXXX,
+   OP_BXXX,
+   OP_CXXX,
+   OP_DXXX,
+   OP_EXXX,
+   OP_FXXX,
 
    NUM_OF_OPCODES
-
 } opcodes_e;
+
+typedef enum opcodes_alu_e
+{
+   OP_8XX0,
+   OP_8XX1,
+   OP_8XX2,
+   OP_8XX3,
+   OP_8XX4,
+   OP_8XX5,
+   OP_8XX6,
+   OP_8XX7,
+   OP_8XXE,
+   
+
+   NUM_OF_ALU_OPCODES
+} opcodes_alu_e;
+
+typedef enum opcodes_0xxx_e
+{
+  CLEAR  = 0xE0,
+  RETURN = 0xEE
+} opcodes_0xxx_e;
+
+typedef enum opcodes_compare_e
+{
+  EQUAL = 0,
+  NOT_EQUAL,
+  EQUAL_REG
+
+} opcodes_compare_e;
+
+typedef enum opcodes_alu_bitwise_e
+{
+  ALU_OR = 0,
+  ALU_AND,
+  ALU_XOR
+
+} opcodes_alu_bitwise_e;
+
+typedef enum opcodes_8xxx_e
+{
+  OP_8XY0,
+  OP_8XY1,
+  OP_8XY2,
+  OP_8XY3,
+  OP_8XY4,
+  OP_8XY5,
+  OP_8XY6,
+  OP_8XY7,
+  OP_8XYE,
+
+  NUM_OF_OPCODES_8XXX
+} opcodes_8xxx_e;
+typedef enum opcodes_Exxx_e
+{
+  OP_EX9E,
+  OP_EXA1,
+
+  NUM_OF_OPCODES_EXXX
+} opcodes_Exxx_e;
+
+typedef enum opcodes_Fxxx_e
+{
+  OP_FX07,
+  OP_FX0A,
+  OP_FX15,
+  OP_FX18,
+  OP_FX1E,
+  OP_FX29,
+  OP_FX33,
+  OP_FX55,
+  OP_FX65,
+
+  NUM_OF_OPCODES_FXXX
+} opcodes_Fxxx_e;
 
 /*
 0xxx: These opcodes are either used for system calls, or to manipulate the display.
@@ -83,6 +139,31 @@ ExA1: This opcode is used to skip the next instruction if a specific key is curr
 Fxxx: This opcode is used for a variety of operations, such as setting a register to the value of the delay timer,
       waiting for a key press, or adding a specific register to the address register.
 */
+
+/* Deprecated. Bad to use bit fields for endianness */
+typedef struct opcode_s
+{
+   uint16_t opcode;
+
+   union
+   {
+      uint8_t byte_0;
+      uint8_t byte_1;
+   };
+   union
+   {
+      uint16_t nibble_0 : 4;
+      uint16_t nibble_1 : 4;
+      uint16_t nibble_2 : 4;
+      uint16_t nibble_3 : 4;
+   };
+   union
+   {
+    uint16_t nibble_byte : 12;
+    uint16_t unused      : 4;
+   };
+   
+} opcode_s;
 
 rc_e execute_opcode(uint16_t opcode, CPU *cpu);
 

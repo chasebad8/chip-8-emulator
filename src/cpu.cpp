@@ -16,7 +16,7 @@
  * 
  * ============================================================================
 */
-rc_e CPU::set_reg(cpu_regs_e reg_index, uint8_t value)
+rc_e CPU::set_reg(reg_index_t reg_index, uint8_t value)
 {
    reg[reg_index] = value;
    return SUCCESS;
@@ -31,16 +31,14 @@ rc_e CPU::set_reg(cpu_regs_e reg_index, uint8_t value)
  * 
  * @param[in]  reg_index - index of the CPU registers
  * 
- * @param[out] value - the value in the CPU register
  * 
- * @return    rc_e
+ * @return    reg_val_t
  * 
  * ============================================================================
 */
-rc_e CPU::get_reg(cpu_regs_e reg_index, uint8_t *value)
+reg_val_t CPU::get_reg(reg_index_t reg_index)
 {
-   *value = reg[reg_index];
-   return SUCCESS;
+   return reg[reg_index];
 }
 
 /**
@@ -65,20 +63,36 @@ rc_e CPU::set_pc(uint16_t value)
 /**
  * ============================================================================
  * 
- * @name       get_pc
+ * @name       set_pc_plus_offset
  * 
- * @brief      get the current location of the program counter
+ * @brief      skip 1 instruction
  * 
- * @param[out] value - the memory location inside PC
+ * @param[in] value - the memory location to set PC to
  * 
  * @return    rc_e
  * 
  * ============================================================================
 */
-rc_e CPU::get_pc(uint16_t *value)
+rc_e CPU::set_pc_plus_offset(uint16_t value)
 {
-   *value = pc;
+   pc = pc + value;
    return SUCCESS;
+}
+
+/**
+ * ============================================================================
+ * 
+ * @name       get_pc
+ * 
+ * @brief      get the current location of the program counter
+ *  * 
+ * @return    pc_val_t
+ * 
+ * ============================================================================
+*/
+pc_val_t CPU::get_pc()
+{
+   return pc;
 }
 
 /**
@@ -112,7 +126,7 @@ rc_e CPU::fetch()
 */
 rc_e CPU::decode_execute()
 {
-   uint16_t opcode = 0x10E0;
+   uint16_t opcode = 0x1ABC;
    execute_opcode(opcode, this);
 
    return SUCCESS;

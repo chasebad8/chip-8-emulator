@@ -18,7 +18,18 @@
 extern "C" {
 #endif
 
-#define GET_FIRST_NIBBLE(opcode)((opcode & 0xF000) >> 12)
+/* Grab a specified nibble. Nibble is 4 bits */
+#define GET_NIBBLE_0(opcode)(opcode & 0x000F)
+#define GET_NIBBLE_1(opcode)((opcode & 0x00F0) >> 4)
+#define GET_NIBBLE_2(opcode)((opcode & 0x0F00) >> 8)
+#define GET_NIBBLE_3(opcode)((opcode & 0xF000) >> 12)
+
+/* Grab a specified byte. Byte is 8 bits */
+#define GET_BYTE_0(opcode)(opcode & 0x00FF)
+#define GET_BYTE_1(opcode)((opcode & 0xFF00) >> 8)
+
+/* Grab the first 12 bits. */
+#define GET_NIBBLE_BYTE(opcode)(opcode & 0x0FFF)
 typedef enum rc_e
 {
   GENERIC_FAIL,
