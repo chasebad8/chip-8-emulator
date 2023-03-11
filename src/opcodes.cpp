@@ -1,15 +1,6 @@
 #include <iostream>
 #include "opcodes.h"
 
-void (*OPCODES::opcode_table[NUM_OF_OPCODES])(uint16_t, uint16_t, uint16_t) =
-{
-   OPCODES::op_clear, OPCODES::op_return, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null,
-   OPCODES::op_null,  OPCODES::op_null,   OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null,
-   OPCODES::op_null,  OPCODES::op_null,   OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null,
-   OPCODES::op_null,  OPCODES::op_null,   OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null, OPCODES::op_null,
-   OPCODES::op_null,  OPCODES::op_null,   OPCODES::op_null
-};
-
 /**
  * ============================================================================
  * 
@@ -26,7 +17,7 @@ void (*OPCODES::opcode_table[NUM_OF_OPCODES])(uint16_t, uint16_t, uint16_t) =
  * 
  * ============================================================================
 */
-void OPCODES::op_null(uint16_t, uint16_t, uint16_t)
+static void op_null(uint16_t opcode, CPU *cpu)
 {
    std::cout << "NULL\n";
 }
@@ -47,7 +38,7 @@ void OPCODES::op_null(uint16_t, uint16_t, uint16_t)
  * 
  * ============================================================================
 */
-void OPCODES::op_clear(uint16_t, uint16_t, uint16_t)
+static void op_clear(uint16_t opcode, CPU *cpu)
 {
    std::cout << "CLEAR\n";
 }
@@ -60,6 +51,7 @@ void OPCODES::op_clear(uint16_t, uint16_t, uint16_t)
  * @brief      OPCODE 00EE
  *             Exit a subroutine
  * 
+ * @param[in]  uint16_t opcode - The opcode being used
  * @param[in]  uint16_t NULL (Not used)
  * @param[in]  uint16_t NULL (Not used)
  * @param[in]  uint16_t NULL (Not used)
@@ -68,7 +60,7 @@ void OPCODES::op_clear(uint16_t, uint16_t, uint16_t)
  * 
  * ============================================================================
 */
-void OPCODES::op_return(uint16_t, uint16_t, uint16_t)
+static void op_return(uint16_t opcode, CPU *cpu)
 {
    std::cout << "RETURN\n";
 }
@@ -89,7 +81,41 @@ void OPCODES::op_return(uint16_t, uint16_t, uint16_t)
  * 
  * ============================================================================
 */
-void OPCODES::op_jump(uint16_t, uint16_t, uint16_t)
+static void op_jump(uint16_t opcode, CPU *cpu)
 {
    std::cout << "JUMP\n";
+}
+
+static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
+{
+   op_clear, op_return, op_jump, op_null, op_null, op_null, op_null, op_null,
+   op_null,  op_null,   op_null, op_null, op_null, op_null, op_null, op_null,
+   op_null,  op_null,   op_null, op_null, op_null, op_null, op_null, op_null,
+   op_null,  op_null,   op_null, op_null, op_null, op_null, op_null, op_null,
+   op_null,  op_null,   op_null
+};
+
+/**
+ * ============================================================================
+ * 
+ * @name       execute_opcode
+ * 
+ * @brief      Execute an opcode instruction
+ * 
+ * @param[in]  uint16_t opcode - The opcode being used
+ * @param[in]  uint16_t op_one - first operand. Up to uint16_t NNN 
+ * 
+ * @return    void
+ * 
+ * ============================================================================
+*/
+rc_e execute_opcode(uint16_t opcode, CPU *cpu)
+{
+   rc_e     rc           = SUCCESS;
+   uint16_t opcode_entry = 0;
+
+   opcode_entry = GET_FIRST_NIBBLE(opcode);
+   opcode_table[opcode_entry](opcode, cpu);
+
+   return rc;
 }

@@ -32,6 +32,9 @@
 *.app
 chip-8
 
+#roms directory
+roms
+
 #Object directory
 obj
 

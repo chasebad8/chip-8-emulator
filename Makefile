@@ -2,7 +2,7 @@
 CC = g++
 
 # Compiler flags
-CFLAGS = -c -Wall
+CFLAGS = -c -Wall -g
 LFLAGS = 
 
 # Directories

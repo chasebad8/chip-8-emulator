@@ -19,8 +19,9 @@ extern "C" {
 
 #include <cstdint>
 #include "common_types.h"
+#include "cpu.h"
 
-typedef enum opcodes
+typedef enum opcodes_e
 {
    OP_00E0,
    OP_00EE,
@@ -60,7 +61,7 @@ typedef enum opcodes
 
    NUM_OF_OPCODES
 
-} opcodes;
+} opcodes_e;
 
 /*
 0xxx: These opcodes are either used for system calls, or to manipulate the display.
@@ -83,16 +84,8 @@ Fxxx: This opcode is used for a variety of operations, such as setting a registe
       waiting for a key press, or adding a specific register to the address register.
 */
 
-class OPCODES
-{
-   private:
-      static void op_null(uint16_t, uint16_t, uint16_t);
-      static void op_clear(uint16_t, uint16_t, uint16_t);
-      static void op_return(uint16_t, uint16_t, uint16_t);
-      static void op_jump(uint16_t, uint16_t, uint16_t);
-   public:
-      static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, uint16_t, uint16_t);
-};
+rc_e execute_opcode(uint16_t opcode, CPU *cpu);
+
 
 #ifdef __cplusplus
 }

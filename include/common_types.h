@@ -18,6 +18,7 @@
 extern "C" {
 #endif
 
+#define GET_FIRST_NIBBLE(opcode)((opcode & 0xF000) >> 12)
 typedef enum rc_e
 {
   GENERIC_FAIL,
