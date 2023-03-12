@@ -30,6 +30,9 @@ extern "C" {
 
 /* Grab the first 12 bits. */
 #define GET_NIBBLE_BYTE(opcode)(opcode & 0x0FFF)
+
+#define VFLAG 15
+
 typedef enum rc_e
 {
   GENERIC_FAIL,

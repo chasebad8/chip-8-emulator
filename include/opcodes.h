@@ -21,6 +21,16 @@ extern "C" {
 #include "common_types.h"
 #include "cpu.h"
 
+#define VFLAG_CLEAR       0
+#define VFLAG_CARRY       1
+#define VFLAG_BORROW      0
+#define VFLAG_NO_BORROW   1
+
+#define LSB_BIT_MASK      0x01
+#define MSB_BIT_MASK      0x80
+
+#define REGISTER_I        17
+#define REGISTER_0        0
 typedef uint16_t opcode_t;
 typedef enum opcodes_e
 {
@@ -55,7 +65,6 @@ typedef enum opcodes_alu_e
    OP_8XX6,
    OP_8XX7,
    OP_8XXE,
-   
 
    NUM_OF_ALU_OPCODES
 } opcodes_alu_e;
@@ -68,19 +77,27 @@ typedef enum opcodes_0xxx_e
 
 typedef enum opcodes_compare_e
 {
-  EQUAL = 0,
-  NOT_EQUAL,
-  EQUAL_REG
+  EQUAL         = 3,
+  NOT_EQUAL     = 4,
+  EQUAL_REG     = 5,
+  NOT_EQUAL_REG = 9
 
 } opcodes_compare_e;
 
-typedef enum opcodes_alu_bitwise_e
+typedef enum alu_operations_e
 {
   ALU_OR = 0,
   ALU_AND,
-  ALU_XOR
+  ALU_XOR,
 
-} opcodes_alu_bitwise_e;
+  ALU_ADD = 4,
+  ALU_SUB,
+
+  ALU_SHIFT_RIGHT,
+  ALU_STORE,
+  ALU_SHIFT_LEFT = 14
+
+} alu_operations_e;
 
 typedef enum opcodes_8xxx_e
 {
@@ -162,7 +179,7 @@ typedef struct opcode_s
     uint16_t nibble_byte : 12;
     uint16_t unused      : 4;
    };
-   
+
 } opcode_s;
 
 rc_e execute_opcode(uint16_t opcode, CPU *cpu);

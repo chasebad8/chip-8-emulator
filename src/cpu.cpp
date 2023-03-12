@@ -98,6 +98,24 @@ pc_val_t CPU::get_pc()
 /**
  * ============================================================================
  * 
+ * @name       get_mem
+ * 
+ * @brief      get the 8 bit value in the memory register mem_index
+ * 
+ * @param[in]  reg_index - index of the CPU registers
+ *
+ * @return     mem_val_t
+ * 
+ * ============================================================================
+*/
+mem_val_t CPU::get_mem(mem_index_t mem_index)
+{
+   return mem[mem_index];
+}
+
+/**
+ * ============================================================================
+ * 
  * @name      fetch
  * 
  * @brief     fetch an instruction from memory
@@ -147,6 +165,6 @@ CPU::CPU()
 {
    std::cout << "Initializing CPU ...\n";
    /* Initially set all RAM to 0 */
-   std::fill(std::begin(ram), std::end(ram), 0x00);
+   std::fill(std::begin(mem), std::end(mem), 0x00);
    std::fill(std::begin(reg), std::end(reg), 0x00);
 }

@@ -19,17 +19,18 @@ extern "C" {
 
 #include "common_types.h"
 
-/* Memory, CHIP-8 Doesn't use ROM, everything is
-   writable in this interpreter */
-#define RAM_MAX_BYTES   4095
-typedef uint8_t ram_t[RAM_MAX_BYTES];
+/* Memory, CHIP-8 has 4095 memory addresses which
+   means that its range is 12 bit addressable. */
+#define MEMORY_MAX_BYTES   4095
+typedef uint8_t  mem_t[MEMORY_MAX_BYTES];
+typedef uint16_t mem_index_t;
+typedef uint8_t  mem_val_t;
 
 /* 16 CPU registers of size 1 byte */
-#define CPU_REGS_MAX   16
-typedef uint8_t reg_t[CPU_REGS_MAX];
-
-typedef uint8_t reg_index_t;
-typedef uint8_t reg_val_t;
+#define CPU_MAX_REGS   17
+typedef uint8_t  reg_t[CPU_MAX_REGS];
+typedef uint16_t reg_index_t;
+typedef uint8_t  reg_val_t;
 
 /* 2 byte PC reg, holds current memory address */
 typedef uint16_t pc_t;
@@ -40,17 +41,19 @@ class CPU
    private:
       pc_t    pc;
       reg_t   reg;
-      ram_t   ram;
+      mem_t   mem;
 
    public:
       CPU();
 
-      rc_e set_reg(reg_index_t, uint8_t);
+      rc_e set_reg(reg_index_t, reg_val_t);
       reg_val_t get_reg(reg_index_t);
 
-      rc_e set_pc(uint16_t);
-      rc_e set_pc_plus_offset(uint16_t);
+      rc_e set_pc(pc_val_t);
+      rc_e set_pc_plus_offset(pc_val_t);
       pc_val_t get_pc();
+
+      mem_val_t get_mem(mem_index_t);
 
       rc_e fetch();
       rc_e decode_execute();
