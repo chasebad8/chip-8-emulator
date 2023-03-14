@@ -65,6 +65,8 @@ static void op_clear(opcode_t opcode, CPU *cpu)
 */
 static void op_return(opcode_t opcode, CPU *cpu)
 {
+   cpu->set_pc(cpu->mem_stack_top());
+   cpu->mem_stack_pop();
    std::cout << "RETURN\n";
 }
 
@@ -139,7 +141,7 @@ static void op_jump(opcode_t opcode, CPU *cpu)
 */
 static void op_subroutine(opcode_t opcode, CPU *cpu)
 {
-   /* TODO: ADD current PC to stack */
+   cpu->mem_stack_push(cpu->get_pc());
    cpu->set_pc(GET_NIBBLE_BYTE(opcode));
    std::cout << "SUBROUTINE\n";
 }
@@ -209,8 +211,9 @@ static void op_compare(opcode_t opcode, CPU *cpu)
  *
  * @name       op_store
  *
- * @brief      OPCODE 6XNN
- *             Store the value of NN in register VX
+ * @brief      Store values into registers
+ *             OPCODE 6XNN: Store the value of NN in register VX
+ *             OPCODE ANNN: Store memory address NNN into I reg
  *
  * @param[in]  opcode_t opcode - The opcode being used
  * @param[in]  CPU*     cpu    - Pointer to main CPU object
@@ -224,7 +227,7 @@ static void op_store(opcode_t opcode, CPU *cpu)
    switch(GET_NIBBLE_3(opcode))
    {
       case OP_6XXX: cpu->set_reg(GET_NIBBLE_2(opcode), GET_BYTE_0(opcode)); break;
-      case OP_AXXX: cpu->set_reg(REGISTER_I, GET_BYTE_0(opcode));           break;
+      case OP_AXXX: cpu->set_i_reg(GET_BYTE_0(opcode));                     break;
    }
 }
 

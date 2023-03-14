@@ -14,10 +14,6 @@
 #ifndef __COMMON_TYPES_H__
 #define __COMMON_TYPES_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Grab a specified nibble. Nibble is 4 bits */
 #define GET_NIBBLE_0(opcode)(opcode & 0x000F)
 #define GET_NIBBLE_1(opcode)((opcode & 0x00F0) >> 4)
@@ -61,9 +57,5 @@ typedef enum state_machine_e
     BOOT_DOWN
 
 } state_machine_e;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __COMMON_TYPES_H__ */

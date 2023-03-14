@@ -13,10 +13,6 @@
 #ifndef __OPCODES_H__
 #define __OPCODES_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <cstdint>
 #include "common_types.h"
 #include "cpu.h"
@@ -29,8 +25,8 @@ extern "C" {
 #define LSB_BIT_MASK      0x01
 #define MSB_BIT_MASK      0x80
 
-#define REGISTER_I        17
 #define REGISTER_0        0
+
 typedef uint16_t opcode_t;
 typedef enum opcodes_e
 {
@@ -183,10 +179,5 @@ typedef struct opcode_s
 } opcode_s;
 
 rc_e execute_opcode(uint16_t opcode, CPU *cpu);
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __OPCODES_H__ */
