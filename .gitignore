@@ -32,11 +32,11 @@
 *.app
 chip-8
 
-#roms directory
+#Directories
 roms
-
-#Object directory
 obj
+libs
+logs
 
 #vscode
 .vs*

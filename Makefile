@@ -1,14 +1,17 @@
 # Compiler
 CC = g++
 
-# Compiler flags
-CFLAGS = -c -Wall -g
-LFLAGS = 
-
 # Directories
 SRC_DIR = src
 INC_DIR = include
 OBJ_DIR = obj
+LIB_DIR = libs
+SPDLOG_PATH=./libs/spdlog/build
+
+# Compiler flags
+CXXFLAGS = -c -Wall -g
+INCLUDES = -I$(INC_DIR) -I./libs/spdlog/include/
+LDFLAGS = -L$(SPDLOG_PATH)/spdlog
 
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
@@ -22,11 +25,11 @@ TARGET = chip-8
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -I$(INC_DIR) $< -o $@
+	$(CC) $(CXXFLAGS) $(INCLUDES) $< -o $@
 
 clean:
 	rm -f $(OBJ_DIR)/*.o $(TARGET)

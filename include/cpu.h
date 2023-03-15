@@ -14,7 +14,6 @@
 
 #include <stack>
 #include <cstdint>
-
 #include "common_types.h"
 
 /* Memory, CHIP-8 has 4095 memory addresses which

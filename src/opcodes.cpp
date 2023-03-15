@@ -2,6 +2,7 @@
 #include "opcodes.h"
 #include <cstdlib>
 #include <ctime>
+#include "spdlog/spdlog.h"
 
 #define COMPARE_OPCODES_OFFSET 3
 #define INSTRUCTION_SKIP       2
@@ -24,7 +25,7 @@
 */
 static void op_null(opcode_t opcode, CPU *cpu)
 {
-   std::cout << "NULL\n";
+   spdlog::debug("NULL");
 }
 
 /**
@@ -44,7 +45,7 @@ static void op_null(opcode_t opcode, CPU *cpu)
 */
 static void op_clear(opcode_t opcode, CPU *cpu)
 {
-   std::cout << "CLEAR\n";
+   spdlog::debug("CLEAR");
 }
 
 /**
@@ -65,9 +66,10 @@ static void op_clear(opcode_t opcode, CPU *cpu)
 */
 static void op_return(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("RETURN");
+
    cpu->set_pc(cpu->mem_stack_top());
    cpu->mem_stack_pop();
-   std::cout << "RETURN\n";
 }
 
 /**
@@ -117,11 +119,12 @@ static void op_sys_calls(opcode_t opcode, CPU *cpu)
 */
 static void op_jump(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("JUMP");
+
    pc_val_t pc_val = GET_NIBBLE_BYTE(opcode);
 
    cpu->set_pc((GET_NIBBLE_3(opcode) == OP_1XXX) ? pc_val :
                                                    pc_val + cpu->get_reg(REGISTER_0));
-   std::cout << "JUMP\n";
 }
 
 /**
@@ -141,9 +144,10 @@ static void op_jump(opcode_t opcode, CPU *cpu)
 */
 static void op_subroutine(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("SUBROUTINE");
+
    cpu->mem_stack_push(cpu->get_pc());
    cpu->set_pc(GET_NIBBLE_BYTE(opcode));
-   std::cout << "SUBROUTINE\n";
 }
 
 /**
@@ -170,6 +174,8 @@ static void op_subroutine(opcode_t opcode, CPU *cpu)
 */
 static void op_compare(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("COMPARE, opcode: {0:x}", opcode);
+
    reg_val_t reg_val = cpu->get_reg(GET_NIBBLE_2(opcode));
 
    switch(GET_NIBBLE_3(opcode))
@@ -224,6 +230,8 @@ static void op_compare(opcode_t opcode, CPU *cpu)
 */
 static void op_store(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("STORE, opcode: {0:x}", opcode);
+
    switch(GET_NIBBLE_3(opcode))
    {
       case OP_6XXX: cpu->set_reg(GET_NIBBLE_2(opcode), GET_BYTE_0(opcode)); break;
@@ -248,6 +256,8 @@ static void op_store(opcode_t opcode, CPU *cpu)
 */
 static void op_add(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("ADD, opcode: {0:x}", opcode);
+
    reg_val_t reg_val = (cpu->get_reg(GET_NIBBLE_2(opcode)) + GET_BYTE_0(opcode)) % 256;
    cpu->set_reg(GET_NIBBLE_2(opcode), reg_val);
 }
@@ -269,6 +279,8 @@ static void op_add(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_store(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("ALU_STORE, opcode: {0:x}", opcode);
+
    reg_val_t reg_y = cpu->get_reg(GET_NIBBLE_1(opcode));
    cpu->set_reg(GET_NIBBLE_3(opcode), reg_y);
 }
@@ -294,6 +306,8 @@ static void op_alu_store(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_bitwise(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("ALU_BITWISE, opcode: {0:x}", opcode);
+
    reg_index_t reg_x_index = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index = GET_NIBBLE_1(opcode);
    reg_val_t   reg_x       = cpu->get_reg(reg_x_index);
@@ -330,6 +344,8 @@ static void op_alu_bitwise(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_add_sub(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("ALU_ADD_SUB, opcode: {0:x}", opcode);
+
    reg_index_t reg_x_index   = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index   = GET_NIBBLE_1(opcode);
    reg_val_t   reg_x         = cpu->get_reg(reg_x_index);
@@ -372,6 +388,8 @@ static void op_alu_add_sub(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_shift(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("ALU_SHIFT, opcode: {0:x}", opcode);
+
    reg_index_t reg_x_index = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index = GET_NIBBLE_1(opcode);
    reg_val_t   reg_y       = cpu->get_reg(reg_y_index);
@@ -439,6 +457,8 @@ static void op_alu(opcode_t opcode, CPU *cpu)
 */
 static void op_random(opcode_t opcode, CPU *cpu)
 {
+   spdlog::debug("RANDOM, opcode: {0:x}", opcode);
+
    std::srand(std::time(nullptr));
    int random_byte_val = std::rand() % MAX_BYTE_VAL;
 
