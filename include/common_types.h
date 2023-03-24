@@ -29,6 +29,8 @@
 
 #define VFLAG 15
 
+typedef uint16_t opcode_t;
+
 typedef enum rc_e
 {
   GENERIC_FAIL,

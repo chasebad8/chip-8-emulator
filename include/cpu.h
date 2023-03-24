@@ -15,6 +15,7 @@
 #include <stack>
 #include <cstdint>
 #include "common_types.h"
+#include "spdlog/spdlog.h"
 
 /* Memory, CHIP-8 has 4095 memory addresses which
    means that its range is 12 bit addressable. */
@@ -41,6 +42,7 @@ class CPU
       pc_t                  pc;
       reg_t                 reg;
       mem_t                 mem;
+      std::shared_ptr<spdlog::logger> logger;
 
    public:
       CPU();
@@ -61,8 +63,10 @@ class CPU
 
       mem_val_t get_mem(mem_index_t);
 
-      rc_e fetch();
-      rc_e decode_execute();
+      opcode_t fetch();
+      rc_e decode_execute(opcode_t);
+
+      rc_e run();
 };
 
 #endif /* __CPU_H__ */

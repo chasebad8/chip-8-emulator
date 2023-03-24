@@ -27,7 +27,6 @@
 
 #define REGISTER_0        0
 
-typedef uint16_t opcode_t;
 typedef enum opcodes_e
 {
    OP_0XXX,
@@ -178,6 +177,33 @@ typedef struct opcode_s
 
 } opcode_s;
 
+/**
+ * ============================================================================
+ *
+ * @name       init_log_opcodes
+ *
+ * @brief      Initialize the log for opcode static functions
+ *
+ * @return     void
+ *
+ * ============================================================================
+*/
+void init_log_opcodes();
+
+/**
+ * ============================================================================
+ *
+ * @name       execute_opcode
+ *
+ * @brief      Execute an opcode instruction
+ *
+ * @param[in]  opcode_t opcode - The opcode being used
+ * @param[in]  CPU*     cpu    - Pointer to main CPU object
+ *
+ * @return    void
+ *
+ * ============================================================================
+*/
 rc_e execute_opcode(uint16_t opcode, CPU *cpu);
 
 #endif /* __OPCODES_H__ */
