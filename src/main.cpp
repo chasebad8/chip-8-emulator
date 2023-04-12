@@ -5,6 +5,7 @@
 
 #define SPDLOG_DEBUG_ON
 
+using namespace std;
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -39,35 +40,60 @@ int main()
    std::shared_ptr<spdlog::logger> logger = spdlog::get("main");
    logger->info("Booting up Chip-8 ...");
 
-   if(SDL_Init(SDL_INIT_VIDEO) < 0)
-   {
-      std::cout << "Failed to initialize the SDL2 library\n";
-      return -1;
-   }
+	//First we need to start up SDL, and make sure it went ok
+	if (SDL_Init(SDL_INIT_VIDEO) != 0){
+		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+		return 1;
+	}
+	
+	// Pointers to our window and surface
+	SDL_Surface* winSurface = NULL;
+	SDL_Window* window = NULL;
 
-   SDL_Window *window = SDL_CreateWindow("SDL2 Window",
-                                       SDL_WINDOWPOS_CENTERED,
-                                       SDL_WINDOWPOS_CENTERED,
-                                       680, 480,
-                                       0);
+	// Initialize SDL. SDL_Init will return -1 if it fails.
+	if ( SDL_Init( SDL_INIT_EVERYTHING ) < 0 ) {
+		cout << "Error initializing SDL: " << SDL_GetError() << endl;
+		system("pause");
+		// End the program
+		return 1;
+	} 
 
-   if(!window)
-   {
-      std::cout << "Failed to create window\n";
-      return -1;
-   }
+	// Create our window
+	window = SDL_CreateWindow( "CHIP-8 EMULATOR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN );
 
-   SDL_Surface *window_surface = SDL_GetWindowSurface(window);
+	// Make sure creating the window succeeded
+	if ( !window ) {
+		cout << "Error creating window: " << SDL_GetError()  << endl;
+		system("pause");
+		// End the program
+		return 1;
+	}
 
-   if(!window_surface)
-   {
-      std::cout << "Failed to get the surface from the window\n";
-      return -1;
-   }
+	// Get the surface from the window
+	winSurface = SDL_GetWindowSurface( window );
 
-   SDL_UpdateWindowSurface(window);
+	// Make sure getting the surface succeeded
+	if ( !winSurface ) {
+		cout << "Error getting surface: " << SDL_GetError() << endl;
+		system("pause");
+		// End the program
+		return 1;
+	}
 
-   SDL_Delay(5000);
+	// Fill the window with a white rectangle
+	SDL_FillRect( winSurface, NULL, SDL_MapRGB( winSurface->format, 0, 0, 0 ) );
+
+	// Update the window display
+	SDL_UpdateWindowSurface( window );
+
+	// Wait
+	sleep(10);
+
+	// Destroy the window. This will also destroy the surface
+	SDL_DestroyWindow( window );
+
+	// Quit SDL
+	SDL_Quit();
    
    CPU cpu;
 

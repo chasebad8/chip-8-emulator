@@ -9,9 +9,9 @@ LIB_DIR = libs
 SPDLOG_PATH=./$(LIB_DIR)/spdlog/build
 
 # Compiler flags
-CXXFLAGS = -c -Wall -g `sdl2-config --cflags --libs`
-INCLUDES = -I$(INC_DIR) -I./libs/spdlog/include/ -I/usr/include/
-LDFLAGS = -L$(SPDLOG_PATH) -lspdlog
+CXXFLAGS = -c -Wall -g $(shell sdl2-config --cflags)
+INCLUDES = -I$(INC_DIR) -I./libs/spdlog/include/
+LDFLAGS = -L$(SPDLOG_PATH) -lspdlog $(shell sdl2-config --libs)
 
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
@@ -25,7 +25,7 @@ TARGET = chip-8
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(OBJ_DIR)
