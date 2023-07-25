@@ -9,7 +9,7 @@
 #define INSTRUCTION_SKIP       2
 #define MAX_BYTE_VAL           255
 
-std::shared_ptr<spdlog::logger> logger;
+std::shared_ptr<spdlog::logger> opcode_logger;
 
 /**
  * ============================================================================
@@ -28,7 +28,7 @@ std::shared_ptr<spdlog::logger> logger;
 */
 static void op_null(opcode_t opcode, CPU *cpu)
 {
-   logger->info("NULL");
+   opcode_logger->info("NULL");
 }
 
 /**
@@ -48,7 +48,9 @@ static void op_null(opcode_t opcode, CPU *cpu)
 */
 static void op_clear(opcode_t opcode, CPU *cpu)
 {
-   logger->info("CLEAR");
+   opcode_logger->info("CLEAR");
+   cpu->clear_pixel_map();
+   cpu->update_display = true;
 }
 
 /**
@@ -69,7 +71,7 @@ static void op_clear(opcode_t opcode, CPU *cpu)
 */
 static void op_return(opcode_t opcode, CPU *cpu)
 {
-   logger->info("RETURN");
+   opcode_logger->info("RETURN");
 
    cpu->set_pc(cpu->mem_stack_top());
    cpu->mem_stack_pop();
@@ -122,7 +124,7 @@ static void op_sys_calls(opcode_t opcode, CPU *cpu)
 */
 static void op_jump(opcode_t opcode, CPU *cpu)
 {
-   logger->info("JUMP, opcode: {0:x}", opcode);
+   opcode_logger->info("JUMP, opcode: {0:x}", opcode);
 
    pc_val_t pc_val = GET_NIBBLE_BYTE(opcode);
 
@@ -147,7 +149,7 @@ static void op_jump(opcode_t opcode, CPU *cpu)
 */
 static void op_subroutine(opcode_t opcode, CPU *cpu)
 {
-   logger->info("SUBROUTINE");
+   opcode_logger->info("SUBROUTINE");
 
    cpu->mem_stack_push(cpu->get_pc());
    cpu->set_pc(GET_NIBBLE_BYTE(opcode));
@@ -177,7 +179,7 @@ static void op_subroutine(opcode_t opcode, CPU *cpu)
 */
 static void op_compare(opcode_t opcode, CPU *cpu)
 {
-   logger->info("COMPARE, opcode: {0:x}", opcode);
+   opcode_logger->info("COMPARE, opcode: {0:x}", opcode);
 
    reg_val_t reg_val = cpu->get_reg(GET_NIBBLE_2(opcode));
 
@@ -233,7 +235,7 @@ static void op_compare(opcode_t opcode, CPU *cpu)
 */
 static void op_store(opcode_t opcode, CPU *cpu)
 {
-   logger->info("STORE, opcode: {0:x}", opcode);
+   opcode_logger->info("STORE, opcode: {0:X}", opcode);
 
    switch(GET_NIBBLE_3(opcode))
    {
@@ -259,7 +261,7 @@ static void op_store(opcode_t opcode, CPU *cpu)
 */
 static void op_add(opcode_t opcode, CPU *cpu)
 {
-   logger->info("ADD, opcode: {0:x}", opcode);
+   opcode_logger->info("ADD, opcode: {0:x}", opcode);
 
    reg_val_t reg_val = (cpu->get_reg(GET_NIBBLE_2(opcode)) + GET_BYTE_0(opcode)) % 256;
    cpu->set_reg(GET_NIBBLE_2(opcode), reg_val);
@@ -282,7 +284,7 @@ static void op_add(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_store(opcode_t opcode, CPU *cpu)
 {
-   logger->info("ALU_STORE, opcode: {0:x}", opcode);
+   opcode_logger->info("ALU_STORE, opcode: {0:x}", opcode);
 
    reg_val_t reg_y = cpu->get_reg(GET_NIBBLE_1(opcode));
    cpu->set_reg(GET_NIBBLE_3(opcode), reg_y);
@@ -309,7 +311,7 @@ static void op_alu_store(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_bitwise(opcode_t opcode, CPU *cpu)
 {
-   logger->info("ALU_BITWISE, opcode: {0:x}", opcode);
+   opcode_logger->info("ALU_BITWISE, opcode: {0:x}", opcode);
 
    reg_index_t reg_x_index = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index = GET_NIBBLE_1(opcode);
@@ -347,7 +349,7 @@ static void op_alu_bitwise(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_add_sub(opcode_t opcode, CPU *cpu)
 {
-   logger->info("ALU_ADD_SUB, opcode: {0:x}", opcode);
+   opcode_logger->info("ALU_ADD_SUB, opcode: {0:x}", opcode);
 
    reg_index_t reg_x_index   = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index   = GET_NIBBLE_1(opcode);
@@ -391,7 +393,7 @@ static void op_alu_add_sub(opcode_t opcode, CPU *cpu)
 */
 static void op_alu_shift(opcode_t opcode, CPU *cpu)
 {
-   logger->info("ALU_SHIFT, opcode: {0:x}", opcode);
+   opcode_logger->info("ALU_SHIFT, opcode: {0:x}", opcode);
 
    reg_index_t reg_x_index = GET_NIBBLE_2(opcode);
    reg_index_t reg_y_index = GET_NIBBLE_1(opcode);
@@ -460,7 +462,7 @@ static void op_alu(opcode_t opcode, CPU *cpu)
 */
 static void op_random(opcode_t opcode, CPU *cpu)
 {
-   logger->info("RANDOM, opcode: {0:x}", opcode);
+   opcode_logger->info("RANDOM, opcode: {0:x}", opcode);
 
    std::srand(std::time(nullptr));
    int random_byte_val = std::rand() % MAX_BYTE_VAL;
@@ -468,12 +470,67 @@ static void op_random(opcode_t opcode, CPU *cpu)
    cpu->set_reg(GET_NIBBLE_2(opcode), (random_byte_val & GET_BYTE_0(opcode)));
 }
 
+/**
+ * ============================================================================
+ *
+ * @name       op_sprite
+ *
+ * @brief      OPCODE DXYN
+ *             Draw a sprite at position VX, VY with N bytes of sprite data
+ *             starting at the address stored in I.
+ *             Set VF to 01 if any set pixels are changed to unset, else 00
+ *
+ * @param[in]  opcode_t opcode - The opcode being used
+ * @param[in]  CPU*     cpu    - Pointer to main CPU object
+ *
+ * @return    void
+ *
+ * ============================================================================
+*/
+static void op_sprite(opcode_t opcode, CPU *cpu)
+{
+   opcode_logger->info("SPRITE, opcode: {0:x}", opcode);
+
+   uint8_t x_coord   = GET_NIBBLE_1(opcode);
+   uint8_t y_coord   = GET_NIBBLE_2(opcode);
+   uint8_t num_bytes = GET_NIBBLE_0(opcode);
+
+   cpu->set_reg(VFLAG, 0);
+   
+   /* Sprite is N pixels high */
+   for (int y = 0; y < num_bytes; y++)
+   {
+      /* Sprite is 8 pixels wide */
+      for (int x = 0; x < 8; x++)
+      {
+         /* The memory address stored in I reg (to I reg + y) contains the pixel value */
+         uint8_t pixel_value = cpu->get_mem(cpu->get_i_reg() + y);
+
+         /* Check if the bit in the register is set to change */
+         if(pixel_value & (0x80 >> x))
+         {
+            if(cpu->get_pixel_map((x_coord + x), (y_coord + y)) == PIXEL_ON)
+            {
+               cpu->set_reg(VFLAG, 1);
+               cpu->set_pixel_map((x_coord + x), (y_coord + y), PIXEL_OFF);
+            }
+            else
+            {
+               cpu->set_pixel_map((x_coord + x), (y_coord + y), PIXEL_ON);
+            }
+
+            cpu->update_display = true;
+         }
+      }
+   }
+}
+
 static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
 {
    op_sys_calls, op_jump,    op_subroutine, op_compare,
    op_compare,   op_compare, op_store,      op_add,
    op_alu,       op_compare, op_store,      op_jump,
-   op_random,    op_null,    op_null,       op_null
+   op_random,    op_sprite,  op_null,       op_null
 };
 
 /**
@@ -489,7 +546,7 @@ static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
 */
 void init_log_opcodes()
 {
-   logger = spdlog::get("main");
+   opcode_logger = spdlog::get("main");
 }
 
 /**

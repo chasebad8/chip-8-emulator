@@ -42,10 +42,16 @@ class CPU
       pc_t                  pc;
       reg_t                 reg;
       mem_t                 mem;
+      pixel_map_t           pixel_map;
       std::shared_ptr<spdlog::logger> logger;
 
    public:
       CPU();
+
+      rc_e      set_pixel_map(uint8_t x, uint8_t y, uint32_t value);
+      uint32_t  get_pixel_map(uint8_t x, uint8_t y);
+      void      clear_pixel_map();
+      bool      update_display;
 
       rc_e      mem_stack_push(mem_val_t);
       rc_e      mem_stack_pop();

@@ -29,6 +29,13 @@
 
 #define VFLAG 15
 
+#define SCREEN_WIDTH   64
+#define SCREEN_HEIGHT  32
+#define PIXEL_ON   1
+#define PIXEL_OFF  0
+
+typedef uint32_t pixel_map_t[SCREEN_WIDTH][SCREEN_HEIGHT];
+
 typedef uint16_t opcode_t;
 
 typedef enum rc_e
