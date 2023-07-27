@@ -240,7 +240,7 @@ static void op_store(opcode_t opcode, CPU *cpu)
    switch(GET_NIBBLE_3(opcode))
    {
       case OP_6XXX: cpu->set_reg(GET_NIBBLE_2(opcode), GET_BYTE_0(opcode)); break;
-      case OP_AXXX: cpu->set_i_reg(GET_BYTE_0(opcode));                     break;
+      case OP_AXXX: cpu->set_i_reg(GET_NIBBLE_BYTE(opcode)); break;
    }
 }
 
@@ -491,8 +491,8 @@ static void op_sprite(opcode_t opcode, CPU *cpu)
 {
    opcode_logger->info("SPRITE, opcode: {0:x}", opcode);
 
-   uint8_t x_coord   = GET_NIBBLE_1(opcode);
-   uint8_t y_coord   = GET_NIBBLE_2(opcode);
+   uint8_t x_coord   = cpu->get_reg(GET_NIBBLE_2(opcode));
+   uint8_t y_coord   = cpu->get_reg(GET_NIBBLE_1(opcode));
    uint8_t num_bytes = GET_NIBBLE_0(opcode);
 
    cpu->set_reg(VFLAG, 0);
@@ -506,7 +506,7 @@ static void op_sprite(opcode_t opcode, CPU *cpu)
          /* The memory address stored in I reg (to I reg + y) contains the pixel value */
          uint8_t pixel_value = cpu->get_mem(cpu->get_i_reg() + y);
 
-         /* Check if the bit in the register is set to change */
+         /* Check if the bit in the register is set to change (bitmap is only MSByte) */
          if(pixel_value & (0x80 >> x))
          {
             if(cpu->get_pixel_map((x_coord + x), (y_coord + y)) == PIXEL_ON)
@@ -525,12 +525,33 @@ static void op_sprite(opcode_t opcode, CPU *cpu)
    }
 }
 
+/**
+ * ============================================================================
+ *
+ * @name       op_skip
+ *
+ * @brief      OPCODE EX9E
+ *                    EXA1
+ *             Skip instructions based on hex value of key pressed in reg X
+ *
+ * @param[in]  opcode_t opcode - The opcode being used
+ * @param[in]  CPU*     cpu    - Pointer to main CPU object
+ *
+ * @return    void
+ *
+ * ============================================================================
+*/
+static void op_skip(opcode_t opcode, CPU *cpu)
+{
+
+}
+
 static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
 {
    op_sys_calls, op_jump,    op_subroutine, op_compare,
    op_compare,   op_compare, op_store,      op_add,
    op_alu,       op_compare, op_store,      op_jump,
-   op_random,    op_sprite,  op_null,       op_null
+   op_random,    op_sprite,  op_skip,       op_null
 };
 
 /**

@@ -57,7 +57,7 @@ reg_val_t CPU::get_reg(reg_index_t reg_index)
  *
  * ============================================================================
 */
-rc_e CPU::set_i_reg(mem_val_t value)
+rc_e CPU::set_i_reg(i_reg_val_t value)
 {
    i_reg = value;
    return SUCCESS;
@@ -74,7 +74,7 @@ rc_e CPU::set_i_reg(mem_val_t value)
  *
  * ============================================================================
 */
-mem_val_t CPU::get_i_reg()
+i_reg_val_t CPU::get_i_reg()
 {
    return i_reg;
 }
@@ -216,6 +216,8 @@ mem_val_t CPU::get_mem(mem_index_t mem_index)
 */
 opcode_t CPU::fetch()
 {
+   std::cout << "" << std::endl;
+
    logger->info("Fetching instruction");
    return ((get_mem(pc) << 8) | get_mem(pc + 1));
 }
@@ -310,7 +312,7 @@ void CPU::clear_pixel_map()
 rc_e CPU::run()
 {
    /* Check if mem is empty / null */
-   for(int i = 0; i < 10; i ++)
+   do
    {
       opcode_t opcode = fetch();
 
@@ -325,8 +327,9 @@ rc_e CPU::run()
       /* Each reg is 1 byte and we just read 2 */
       set_pc(pc + MEM_READ_2_BYTES);
 
-      SDL_Delay(1000);
-   }
+      SDL_Delay(100);
+
+   } while(mem[pc] != 0x000);
 
    gpu_shutdown();
 
@@ -355,42 +358,39 @@ CPU::CPU()
    memset(pixel_map, 0, sizeof(pixel_map));
 
    update_display = false;
-   pc = 0;
+   pc = 0x200;
 
-   // mem[0] = 0xba;
-   // mem[1] = 0xcc;
+   for(int i = 0; i < NUM_FONTS; i++)
+   {
+      mem[i] = font[i];
+   }
 
-   mem[100] = 0xF0;
-   mem[101] = 0x90;
-   mem[102] = 0xF0;
-   mem[103] = 0x90;
-   mem[104] = 0xF0;
+   FILE* game = fopen("/home/cb/Downloads/2-ibm-logo.ch8", "rb");
+   if (!game) {
+      logger->error("Unable to open file");
+   }
+   fread(&mem[INSTRUCTION_ADDRESS_START], 1, MEMORY_MAX_BYTES - INSTRUCTION_ADDRESS_START, game);
+   fclose(game);
 
-   mem[105] = 0xF0;
-   mem[106] = 0x90;
-   mem[107] = 0x90;
-   mem[108] = 0x90;
-   mem[109] = 0xF0;
+   // /* Store addy 8 into I reg */
+   // mem[512] = 0xA0;
+   // mem[513] = 0x00;
 
-   /* Store addy 8 into I reg */
-   mem[0] = 0xA0;
-   mem[1] = 0x64;
+   // /* Print 0 */
+   // mem[514] = 0xD0;
+   // mem[515] = 0x05;
 
-   /* Print 8 */
-   mem[2] = 0xDA;
-   mem[3] = 0xA5;
+   // /* Store addy 0 into I reg */
+   // mem[516] = 0xA0;
+   // mem[517] = 0x05;
 
-   /* Store addy 0 into I reg */
-   mem[4] = 0xA0;
-   mem[5] = 0x69;
+   // /* Print 0 */
+   // mem[518] = 0xD1;
+   // mem[519] = 0x05;
 
-   /* Print 0 */
-   mem[6] = 0xDF;
-   mem[7] = 0xFF;
-
-   /* clear */
-   mem[8] = 0x00;
-   mem[9] = 0xE0;
+   // /* clear */
+   // mem[520] = 0x00;
+   // mem[521] = 0xE0;
 
    SDL_Delay(1000);
 
