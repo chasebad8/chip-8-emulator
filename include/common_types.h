@@ -10,7 +10,6 @@
   *
   ******************************************************************************
 */
-
 #ifndef __COMMON_TYPES_H__
 #define __COMMON_TYPES_H__
 
@@ -28,6 +27,8 @@
 #define GET_NIBBLE_BYTE(opcode)(opcode & 0x0FFF)
 
 #define VFLAG 15
+
+#define MS_PER_CLK_CYCLE (500 / 60)
 
 #define SCREEN_WIDTH   64
 #define SCREEN_HEIGHT  32

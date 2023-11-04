@@ -26,9 +26,9 @@ std::shared_ptr<spdlog::logger> opcode_logger;
  *
  * ============================================================================
 */
-static void op_null(opcode_t opcode, CPU *cpu)
+/*static*/ void op_null(opcode_t opcode, CPU *cpu)
 {
-   opcode_logger->info("NULL");
+   opcode_logger->error("NULL");
 }
 
 /**
@@ -102,7 +102,7 @@ static void op_sys_calls(opcode_t opcode, CPU *cpu)
          op_return(opcode, cpu);
          break;
       default:
-         std::cout << "Invalid OP code\n";
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
          break;
    }
 }
@@ -128,8 +128,8 @@ static void op_jump(opcode_t opcode, CPU *cpu)
 
    pc_val_t pc_val = GET_NIBBLE_BYTE(opcode);
 
-   cpu->set_pc((GET_NIBBLE_3(opcode) == OP_1XXX) ? pc_val :
-                                                   pc_val + cpu->get_reg(REGISTER_0));
+   cpu->set_pc((GET_NIBBLE_3(opcode) == OP_1XXX) ? pc_val-2 :
+                                                   pc_val-2 + cpu->get_reg(REGISTER_0));
 }
 
 /**
@@ -152,7 +152,7 @@ static void op_subroutine(opcode_t opcode, CPU *cpu)
    opcode_logger->info("SUBROUTINE");
 
    cpu->mem_stack_push(cpu->get_pc());
-   cpu->set_pc(GET_NIBBLE_BYTE(opcode));
+   cpu->set_pc(GET_NIBBLE_BYTE(opcode)-2);
 }
 
 /**
@@ -212,7 +212,7 @@ static void op_compare(opcode_t opcode, CPU *cpu)
          }
          break;
       default:
-         std::cout << "Invalid OP code\n";
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
          break;
    }
 }
@@ -241,6 +241,9 @@ static void op_store(opcode_t opcode, CPU *cpu)
    {
       case OP_6XXX: cpu->set_reg(GET_NIBBLE_2(opcode), GET_BYTE_0(opcode)); break;
       case OP_AXXX: cpu->set_i_reg(GET_NIBBLE_BYTE(opcode)); break;
+      default:
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
+         break;
    }
 }
 
@@ -263,7 +266,7 @@ static void op_add(opcode_t opcode, CPU *cpu)
 {
    opcode_logger->info("ADD, opcode: {0:x}", opcode);
 
-   reg_val_t reg_val = (cpu->get_reg(GET_NIBBLE_2(opcode)) + GET_BYTE_0(opcode)) % 256;
+   reg_val_t reg_val = (cpu->get_reg(GET_NIBBLE_2(opcode)) + GET_BYTE_0(opcode));
    cpu->set_reg(GET_NIBBLE_2(opcode), reg_val);
 }
 
@@ -287,7 +290,7 @@ static void op_alu_store(opcode_t opcode, CPU *cpu)
    opcode_logger->info("ALU_STORE, opcode: {0:x}", opcode);
 
    reg_val_t reg_y = cpu->get_reg(GET_NIBBLE_1(opcode));
-   cpu->set_reg(GET_NIBBLE_3(opcode), reg_y);
+   cpu->set_reg(GET_NIBBLE_2(opcode), reg_y);
 }
 
 /**
@@ -324,7 +327,7 @@ static void op_alu_bitwise(opcode_t opcode, CPU *cpu)
       case ALU_AND: cpu->set_reg(reg_x_index, (reg_x & reg_y)); break;
       case ALU_XOR: cpu->set_reg(reg_x_index, (reg_x ^ reg_y)); break;
       default:
-         std::cout << "Invalid OP code\n";
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
          break;
    }
 }
@@ -355,18 +358,29 @@ static void op_alu_add_sub(opcode_t opcode, CPU *cpu)
    reg_index_t reg_y_index   = GET_NIBBLE_1(opcode);
    reg_val_t   reg_x         = cpu->get_reg(reg_x_index);
    reg_val_t   reg_y         = cpu->get_reg(reg_y_index);
-   reg_val_t   new_reg_x_val = 0;
 
    switch(GET_NIBBLE_0(opcode))
    {
-      case ALU_ADD: ((reg_x + reg_y) > MAX_BYTE_VAL) ? cpu->set_reg(VFLAG, VFLAG_CARRY) :
-                                                       cpu->set_reg(VFLAG, VFLAG_CLEAR); break;
-      case ALU_SUB: ((reg_y - reg_x) < 0) ? cpu->set_reg(VFLAG, VFLAG_BORROW) :
-                                            cpu->set_reg(VFLAG, VFLAG_NO_BORROW); break;
-      case ALU_STORE: ((new_reg_x_val = reg_y - reg_x) < 0) ? cpu->set_reg(VFLAG, VFLAG_BORROW) :
-                                                              cpu->set_reg(VFLAG, VFLAG_NO_BORROW); break;
+      case ALU_ADD:
+         ((reg_x + reg_y) > MAX_BYTE_VAL) ? cpu->set_reg(VFLAG, VFLAG_CARRY) :
+                                            cpu->set_reg(VFLAG, VFLAG_CLEAR);
+         cpu->set_reg(reg_x_index, (reg_x + reg_y));
+         break;
+
+      case ALU_SUB:
+         ((reg_x - reg_y) < 0) ? cpu->set_reg(VFLAG, VFLAG_BORROW) :
+                                 cpu->set_reg(VFLAG, VFLAG_NO_BORROW);
+         cpu->set_reg(reg_x_index, (reg_x - reg_y));
+         break;
+
+      case ALU_STORE:
+         ((reg_y - reg_x) < 0) ? cpu->set_reg(VFLAG, VFLAG_BORROW) :
+                                 cpu->set_reg(VFLAG, VFLAG_NO_BORROW);
+         cpu->set_reg(reg_x_index, (reg_y - reg_x));
+         break;
+
       default:
-         std::cout << "Invalid OP code\n";
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
          break;
    }
 }
@@ -396,23 +410,21 @@ static void op_alu_shift(opcode_t opcode, CPU *cpu)
    opcode_logger->info("ALU_SHIFT, opcode: {0:x}", opcode);
 
    reg_index_t reg_x_index = GET_NIBBLE_2(opcode);
-   reg_index_t reg_y_index = GET_NIBBLE_1(opcode);
-   reg_val_t   reg_y       = cpu->get_reg(reg_y_index);
+   reg_val_t   reg_x       = cpu->get_reg(reg_x_index);
 
    switch(GET_NIBBLE_0(opcode))
    {
       case ALU_SHIFT_RIGHT:
-         cpu->set_reg(VFLAG, reg_y & LSB_BIT_MASK);
-         cpu->set_reg(reg_x_index, reg_y >> 1);
+         cpu->set_reg(VFLAG, reg_x & LSB_BIT_MASK);
+         cpu->set_reg(reg_x_index, reg_x >> 1);
          break;
 
       case ALU_SHIFT_LEFT:
-         cpu->set_reg(VFLAG, reg_y & MSB_BIT_MASK);
-         cpu->set_reg(reg_x_index, reg_y << 1);
+         cpu->set_reg(VFLAG, reg_x & MSB_BIT_MASK);
+         cpu->set_reg(reg_x_index, reg_x << 1);
          break;
-
       default:
-         std::cout << "Invalid OP code\n";
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
          break;
    }
 }
@@ -496,7 +508,7 @@ static void op_sprite(opcode_t opcode, CPU *cpu)
    uint8_t num_bytes = GET_NIBBLE_0(opcode);
 
    cpu->set_reg(VFLAG, 0);
-   
+
    /* Sprite is N pixels high */
    for (int y = 0; y < num_bytes; y++)
    {
@@ -543,7 +555,95 @@ static void op_sprite(opcode_t opcode, CPU *cpu)
 */
 static void op_skip(opcode_t opcode, CPU *cpu)
 {
+   opcode_logger->info("SKIP, opcode: {0:x}", opcode);
 
+   switch(GET_BYTE_0(opcode))
+   {
+      case SKIP_IS_PRESSED:
+         if(SDL_GetKeyboardState(NULL)[key_map[cpu->get_reg(GET_NIBBLE_2(opcode))]] == 1)
+         {
+            cpu->set_pc_plus_offset(INSTRUCTION_SKIP);
+            break;
+         }
+      case SKIP_NOT_PRESSED:
+         if(SDL_GetKeyboardState(NULL)[key_map[cpu->get_reg(GET_NIBBLE_2(opcode))]] == 0)
+         {
+            cpu->set_pc_plus_offset(INSTRUCTION_SKIP);
+            break;
+         }
+      default:
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
+         break;
+   }
+}
+
+/**
+ * ============================================================================
+ *
+ * @name       op_misc
+ *
+ * @brief      OPCODE
+ *
+ *
+ *
+ * @param[in]  opcode_t opcode - The opcode being used
+ * @param[in]  CPU*     cpu    - Pointer to main CPU object
+ *
+ * @return    void
+ *
+ * ============================================================================
+*/
+static void op_misc(opcode_t opcode, CPU *cpu)
+{
+   opcode_logger->info("MISC, opcode: {0:x}", opcode);
+
+   reg_index_t reg       = GET_NIBBLE_2(opcode);
+   mem_index_t mem_index = cpu->get_i_reg();
+
+   switch(GET_BYTE_0(opcode))
+   {
+      case MISC_STORE_DELAY:
+         cpu->set_reg(reg, cpu->get_timer());
+         break;
+      case MISC_WAIT_FOR_KEYPRESS:
+         break;
+      case MISC_SET_DELAY:
+         cpu->set_timer(cpu->get_reg(reg));
+         break;
+      case MISC_SET_SOUND:
+         /* Not handled in this version */
+         break;
+      case MISC_ADD_VX_I:
+         cpu->set_i_reg_plus_offset(cpu->get_reg(reg));
+         break;
+      case MISC_SET_I_VX:
+         opcode_logger->error("NOT IMPLEMENTED");
+         break;
+      case MISC_BCD:
+         opcode_logger->error("NOT IMPLEMENTED");
+         break;
+      case MISC_STORE_REG:
+         for(reg_index_t reg_index = 0; reg_index <= reg; reg_index ++)
+         {
+            cpu->set_mem(mem_index++, cpu->get_reg(reg_index));
+         }
+
+         cpu->set_i_reg(mem_index);
+         break;
+
+      case MISC_FILL_REG:
+         for(reg_index_t reg_index = 0; reg_index <= reg; reg_index ++)
+         {
+            cpu->set_reg(reg_index, cpu->get_mem(mem_index++));
+         }
+
+         cpu->set_i_reg(mem_index);
+         break;
+
+      default:
+         opcode_logger->error("INVALID OPCODE RECEIVED: opcode: {0:x}", opcode);
+         break;
+   }
 }
 
 static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
@@ -551,7 +651,7 @@ static void (*opcode_table[NUM_OF_OPCODES])(uint16_t, CPU*) =
    op_sys_calls, op_jump,    op_subroutine, op_compare,
    op_compare,   op_compare, op_store,      op_add,
    op_alu,       op_compare, op_store,      op_jump,
-   op_random,    op_sprite,  op_skip,       op_null
+   op_random,    op_sprite,  op_skip,       op_misc
 };
 
 /**

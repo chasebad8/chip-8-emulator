@@ -1,5 +1,4 @@
 #include <iostream>
-#include "gpu.h"
 #include "cpu.h"
 #include "opcodes.h"
 
@@ -66,6 +65,24 @@ rc_e CPU::set_i_reg(i_reg_val_t value)
 /**
  * ============================================================================
  *
+ * @name       set_i_reg_plus_offset
+ *
+ * @brief      add an offset to current i reg value
+ *
+ * @param[in] value - the memory location to set PC to
+ *
+ * @return    rc_e
+ *
+ * ============================================================================
+*/
+rc_e CPU::set_i_reg_plus_offset(reg_val_t value)
+{
+   i_reg = i_reg + value;
+   return SUCCESS;
+}
+/**
+ * ============================================================================
+ *
  * @name       get_i_reg
  *
  * @brief      get the current memory location stored in I reg
@@ -92,7 +109,7 @@ i_reg_val_t CPU::get_i_reg()
  *
  * ============================================================================
 */
-rc_e CPU::mem_stack_push(mem_val_t mem_val)
+rc_e CPU::mem_stack_push(pc_t mem_val)
 {
    mem_stack.push(mem_val);
    return SUCCESS;
@@ -122,11 +139,11 @@ rc_e CPU::mem_stack_pop()
  *
  * @brief      get the top value from the stack
  *  *
- * @return    mem_val_t
+ * @return    pc_t
  *
  * ============================================================================
 */
-mem_val_t CPU::mem_stack_top()
+pc_t CPU::mem_stack_top()
 {
    return mem_stack.top();
 }
@@ -194,6 +211,25 @@ pc_val_t CPU::get_pc()
  *
  * @param[in]  reg_index - index of the CPU registers
  *
+ * @return     rc_e
+ *
+ * ============================================================================
+*/
+rc_e CPU::set_mem(mem_index_t mem_index, mem_val_t mem_value)
+{
+   mem[mem_index] = mem_value;
+   return SUCCESS;
+}
+
+/**
+ * ============================================================================
+ *
+ * @name       get_mem
+ *
+ * @brief      get the 8 bit value in the memory register mem_index
+ *
+ * @param[in]  reg_index - index of the CPU registers
+ *
  * @return     mem_val_t
  *
  * ============================================================================
@@ -201,6 +237,60 @@ pc_val_t CPU::get_pc()
 mem_val_t CPU::get_mem(mem_index_t mem_index)
 {
    return mem[mem_index];
+}
+
+/**
+ * ============================================================================
+ *
+ * @name       set_timer
+ *
+ * @brief      set the value of the timer register
+ *
+ * @param[in] value - the memory location to set PC to
+ *
+ * @return    rc_e
+ *
+ * ============================================================================
+*/
+rc_e CPU::set_timer(timer_val_t value)
+{
+   timer = value;
+   return SUCCESS;
+}
+
+/**
+ * ============================================================================
+ *
+ * @name       update_timer
+ *
+ * @brief      update the value of the timer register
+ *
+ * @return    rc_e
+ *
+ * ============================================================================
+*/
+rc_e CPU::update_timer()
+{
+   timer --;
+   return SUCCESS;
+}
+
+
+
+/**
+ * ============================================================================
+ *
+ * @name       get_timer
+ *
+ * @brief      get the current value of the delay timer register
+ *  *
+ * @return    timer_value_t
+ *
+ * ============================================================================
+*/
+timer_val_t CPU::get_timer()
+{
+   return timer;
 }
 
 /**
@@ -216,8 +306,6 @@ mem_val_t CPU::get_mem(mem_index_t mem_index)
 */
 opcode_t CPU::fetch()
 {
-   std::cout << "" << std::endl;
-
    logger->info("Fetching instruction");
    return ((get_mem(pc) << 8) | get_mem(pc + 1));
 }
@@ -282,6 +370,7 @@ uint32_t CPU::get_pixel_map(uint8_t x, uint8_t y)
 {
    return pixel_map[x][y];
 }
+
 /**
  * ============================================================================
  *
@@ -311,25 +400,57 @@ void CPU::clear_pixel_map()
 */
 rc_e CPU::run()
 {
+   SDL_Event event;
+   uint32_t  reference_tick = 0;
+   uint32_t  frame_rate     = 0;
+   bool      running        = true;
+   opcode_t  opcode         = 0x0000;
+
    /* Check if mem is empty / null */
    do
    {
-      opcode_t opcode = fetch();
+      std::cout << "" << std::endl;
+      logger->info("PC: {0:X}", pc);
+
+      reference_tick = SDL_GetTicks();
+
+      opcode = fetch();
 
       /* Probably should do some opcode validation here*/
-      decode_execute(opcode);
-
-      if(update_display == true)
+      if(decode_execute(opcode) != SUCCESS)
+      {
+         logger->error("Failed to debug or execute opcode");
+      }
+      else if(update_display == true)
       {
          gpu_update_display(pixel_map);
+      }
+
+      /* Throttle emulator execution so we run at 60Hz */
+      if((frame_rate = SDL_GetTicks() - reference_tick) < MS_PER_CLK_CYCLE)
+      {
+         SDL_Delay(MS_PER_CLK_CYCLE - frame_rate);
+      }
+
+      /* Non-blocking call to check if any keys were pressed */
+      while (SDL_PollEvent(&event))
+      {
+         if (event.type == SDL_QUIT)
+         {
+            running = false;
+            logger->info("Chip-8 Shutting Down");
+         }
+      }
+
+      if(timer > 0)
+      {
+         update_timer();
       }
 
       /* Each reg is 1 byte and we just read 2 */
       set_pc(pc + MEM_READ_2_BYTES);
 
-      SDL_Delay(100);
-
-   } while(mem[pc] != 0x000);
+   } while((running == true));
 
    gpu_shutdown();
 
@@ -355,6 +476,7 @@ CPU::CPU()
    /* Initially set all RAM to 0 */
    std::fill(std::begin(mem), std::end(mem), 0x00);
    std::fill(std::begin(reg), std::end(reg), 0x00);
+
    memset(pixel_map, 0, sizeof(pixel_map));
 
    update_display = false;
@@ -365,7 +487,13 @@ CPU::CPU()
       mem[i] = font[i];
    }
 
-   FILE* game = fopen("/home/cb/Downloads/2-ibm-logo.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/2-ibm-logo.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/test_opcode.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/BC_test.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/particle.ch8", "rb");
+   FILE* game = fopen("/home/cb/Downloads/pong.ch8", "rb");
+
+
    if (!game) {
       logger->error("Unable to open file");
    }
@@ -413,5 +541,4 @@ CPU::CPU()
 
    gpu_update_display(pixel_map);
    SDL_Delay(1000);
-
 }

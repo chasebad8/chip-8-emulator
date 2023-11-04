@@ -16,15 +16,14 @@
 #include <cstdint>
 #include "common_types.h"
 #include "spdlog/spdlog.h"
+#include "gpu.h"
+
 
 /* Memory, CHIP-8 has 4095 memory addresses which
    means that its range is 12 bit addressable. */
 #define MEMORY_MAX_BYTES          4095
 #define INSTRUCTION_ADDRESS_START 512
 #define NUM_FONTS                 80
-typedef uint8_t  mem_t[MEMORY_MAX_BYTES];
-typedef uint16_t mem_index_t;
-typedef uint8_t  mem_val_t;
 
 /* The font map, to be stored in memory */
 static const uint8_t font[NUM_FONTS] = {
@@ -46,6 +45,29 @@ static const uint8_t font[NUM_FONTS] = {
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+static const SDL_Scancode key_map[16] = {
+    SDL_SCANCODE_1,
+    SDL_SCANCODE_2,
+    SDL_SCANCODE_3,
+    SDL_SCANCODE_4,
+    SDL_SCANCODE_Q,
+    SDL_SCANCODE_W,
+    SDL_SCANCODE_E,
+    SDL_SCANCODE_R,
+    SDL_SCANCODE_A,
+    SDL_SCANCODE_S,
+    SDL_SCANCODE_D,
+    SDL_SCANCODE_F,
+    SDL_SCANCODE_Z,
+    SDL_SCANCODE_X,
+    SDL_SCANCODE_C,
+    SDL_SCANCODE_V
+};
+
+typedef uint8_t  mem_t[MEMORY_MAX_BYTES];
+typedef uint16_t mem_index_t;
+typedef uint8_t  mem_val_t;
+
 /* 16 CPU registers of size 1 byte */
 #define CPU_MAX_REGS   16
 typedef uint8_t  reg_t[CPU_MAX_REGS];
@@ -59,14 +81,19 @@ typedef uint16_t i_reg_val_t;
 typedef uint16_t pc_t;
 typedef uint16_t pc_val_t;
 
+/* 1 byte timer reg */
+typedef uint8_t timer_reg_t;
+typedef uint8_t timer_val_t;
+
 class CPU
 {
    private:
-      std::stack<mem_val_t> mem_stack;
+      std::stack<pc_t> mem_stack;
       i_reg_val_t           i_reg;
       pc_t                  pc;
       reg_t                 reg;
       mem_t                 mem;
+      timer_reg_t           timer;
       pixel_map_t           pixel_map;
       std::shared_ptr<spdlog::logger> logger;
 
@@ -78,21 +105,27 @@ class CPU
       void      clear_pixel_map();
       bool      update_display;
 
-      rc_e      mem_stack_push(mem_val_t);
-      rc_e      mem_stack_pop();
-      mem_val_t mem_stack_top();
+      rc_e  mem_stack_push(pc_t);
+      rc_e  mem_stack_pop();
+      pc_t  mem_stack_top();
 
       rc_e        set_i_reg(i_reg_val_t);
+      rc_e        set_i_reg_plus_offset(reg_val_t);
       i_reg_val_t get_i_reg();
 
       rc_e      set_reg(reg_index_t, reg_val_t);
       reg_val_t get_reg(reg_index_t);
+
+      rc_e        set_timer(timer_val_t);
+      timer_val_t get_timer();
+      rc_e        update_timer();
 
       rc_e     set_pc(pc_val_t);
       rc_e     set_pc_plus_offset(pc_val_t);
       pc_val_t get_pc();
 
       mem_val_t get_mem(mem_index_t);
+      rc_e      set_mem(mem_index_t, mem_val_t);
 
       opcode_t fetch();
       rc_e decode_execute(opcode_t);

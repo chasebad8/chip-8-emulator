@@ -81,9 +81,9 @@ typedef enum opcodes_compare_e
 
 typedef enum alu_operations_e
 {
-  ALU_OR = 0,
-  ALU_AND,
-  ALU_XOR,
+  ALU_OR  = 1,
+  ALU_AND = 2,
+  ALU_XOR = 3,
 
   ALU_ADD = 4,
   ALU_SUB,
@@ -108,28 +108,27 @@ typedef enum opcodes_8xxx_e
 
   NUM_OF_OPCODES_8XXX
 } opcodes_8xxx_e;
-typedef enum opcodes_Exxx_e
+
+typedef enum opcodes_skip_e
 {
-  OP_EX9E,
-  OP_EXA1,
+  SKIP_IS_PRESSED = 0x9E,
+  SKIP_NOT_PRESSED = 0xA1,
 
-  NUM_OF_OPCODES_EXXX
-} opcodes_Exxx_e;
+} opcodes_skip_e;
 
-typedef enum opcodes_Fxxx_e
+typedef enum opcodes_exxx_e
 {
-  OP_FX07,
-  OP_FX0A,
-  OP_FX15,
-  OP_FX18,
-  OP_FX1E,
-  OP_FX29,
-  OP_FX33,
-  OP_FX55,
-  OP_FX65,
+  MISC_STORE_DELAY       = 0x07,
+  MISC_WAIT_FOR_KEYPRESS = 0x0A,
+  MISC_SET_DELAY         = 0x15,
+  MISC_SET_SOUND         = 0x18,
+  MISC_ADD_VX_I          = 0x1E,
+  MISC_SET_I_VX          = 0x29,
+  MISC_BCD               = 0x33,
+  MISC_STORE_REG         = 0x55,
+  MISC_FILL_REG          = 0x65,
 
-  NUM_OF_OPCODES_FXXX
-} opcodes_Fxxx_e;
+} opcodes_exxx_e;
 
 /*
 0xxx: These opcodes are either used for system calls, or to manipulate the display.
