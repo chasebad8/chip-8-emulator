@@ -6,3 +6,6 @@ https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set
 https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference
 https://github.com/corax89/chip8-test-rom/blob/master/README.md
 
+
+https://github.com/chasebad8/chip-8-emulator/assets/51832821/35bd8b61-e1f6-47c4-8dfb-1d1bc60a7759
+
