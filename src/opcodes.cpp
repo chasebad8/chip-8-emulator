@@ -8,6 +8,7 @@
 #define COMPARE_OPCODES_OFFSET 3
 #define INSTRUCTION_SKIP       2
 #define MAX_BYTE_VAL           255
+#define SPRITE_OFFSET          5
 
 std::shared_ptr<spdlog::logger> opcode_logger;
 
@@ -605,23 +606,30 @@ static void op_misc(opcode_t opcode, CPU *cpu)
       case MISC_STORE_DELAY:
          cpu->set_reg(reg, cpu->get_timer());
          break;
+
       case MISC_WAIT_FOR_KEYPRESS:
          break;
+
       case MISC_SET_DELAY:
          cpu->set_timer(cpu->get_reg(reg));
          break;
+
       case MISC_SET_SOUND:
          /* Not handled in this version */
          break;
+
       case MISC_ADD_VX_I:
          cpu->set_i_reg_plus_offset(cpu->get_reg(reg));
          break;
+
       case MISC_SET_I_VX:
-         opcode_logger->error("NOT IMPLEMENTED");
+         cpu->set_i_reg(cpu->get_reg(reg) * SPRITE_OFFSET);
          break;
+
       case MISC_BCD:
          opcode_logger->error("NOT IMPLEMENTED");
          break;
+
       case MISC_STORE_REG:
          for(reg_index_t reg_index = 0; reg_index <= reg; reg_index ++)
          {

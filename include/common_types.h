@@ -28,7 +28,7 @@
 
 #define VFLAG 15
 
-#define MS_PER_CLK_CYCLE (500 / 60)
+#define MS_PER_CLK_CYCLE (100 / 60)
 
 #define SCREEN_WIDTH   64
 #define SCREEN_HEIGHT  32

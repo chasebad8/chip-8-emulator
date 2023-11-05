@@ -491,8 +491,10 @@ CPU::CPU()
    //FILE* game = fopen("/home/cb/Downloads/test_opcode.ch8", "rb");
    //FILE* game = fopen("/home/cb/Downloads/BC_test.ch8", "rb");
    //FILE* game = fopen("/home/cb/Downloads/particle.ch8", "rb");
-   FILE* game = fopen("/home/cb/Downloads/pong.ch8", "rb");
-
+   //FILE* game = fopen("/home/cb/Downloads/pong.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/tetris.ch8", "rb");
+   //FILE* game = fopen("/home/cb/Downloads/space_invaders.ch8", "rb");
+   FILE* game = fopen("/home/cb/Downloads/RPS.ch8", "rb");
 
    if (!game) {
       logger->error("Unable to open file");

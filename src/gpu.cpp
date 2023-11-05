@@ -22,7 +22,7 @@ bool gpu_init()
 	bool rc = false;
 
    gpu_logger->info("Initializing GPU ...");
-   
+
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		gpu_logger->error("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -89,7 +89,8 @@ bool gpu_update_display(pixel_map_t pixel_map)
       SDL_RenderClear(gpu.renderer);
 
       /* Set drawing color to white for the new pixels */
-      SDL_SetRenderDrawColor(gpu.renderer, 255, 255, 255, 255); // White color
+      //SDL_SetRenderDrawColor(gpu.renderer, 255, 255, 255, 255); // White color
+      SDL_SetRenderDrawColor(gpu.renderer, 255, 176, 0, 255); // Amber color
 
       for (int x = 0; x < SCREEN_WIDTH; x++) {
          for (int y = 0; y < SCREEN_HEIGHT; y++) {
