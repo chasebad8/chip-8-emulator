@@ -32,7 +32,7 @@ void log_file_init()
    spdlog::set_default_logger(global_logger);
 
    init_log_opcodes();
-	init_log_gpu();
+   init_log_gpu();
 }
 
 int main(int argc,char *argv[])
@@ -48,10 +48,10 @@ int main(int argc,char *argv[])
       logger->error("No .ch8 ROM file path supplied");
    }
    /* Initialize the SDL2 Library and window */
-	else if(gpu_init() == false)
-	{
-		gpu_shutdown();
-	}
+   else if(gpu_init() == false)
+   {
+      gpu_shutdown();
+   }
    else
    {
       CPU cpu(argv[1]);

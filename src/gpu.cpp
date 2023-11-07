@@ -19,26 +19,26 @@ gpu_t gpu = { 0 };
 */
 bool gpu_init()
 {
-	bool rc = false;
+   bool rc = false;
 
    gpu_logger->info("Initializing GPU ...");
 
-	if(SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
-		gpu_logger->error("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-	}
-	else if((gpu.window = SDL_CreateWindow("CHIP 8 EMULATOR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * PIXEL_SIZE, SCREEN_HEIGHT * PIXEL_SIZE, SDL_WINDOW_SHOWN)) == NULL)
-	{
-		gpu_logger->error("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-	}
-	else if((gpu.renderer = SDL_CreateRenderer(gpu.window, -1, SDL_RENDERER_ACCELERATED)) == NULL)
-	{
-		gpu_logger->error( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+   if(SDL_Init(SDL_INIT_VIDEO) < 0)
+   {
+      gpu_logger->error("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
    }
-	else
-	{
-		rc = true;
-	}
+   else if((gpu.window = SDL_CreateWindow("CHIP 8 EMULATOR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * PIXEL_SIZE, SCREEN_HEIGHT * PIXEL_SIZE, SDL_WINDOW_SHOWN)) == NULL)
+   {
+      gpu_logger->error("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+   }
+   else if((gpu.renderer = SDL_CreateRenderer(gpu.window, -1, SDL_RENDERER_ACCELERATED)) == NULL)
+   {
+      gpu_logger->error( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+   }
+   else
+   {
+      rc = true;
+   }
 
    return rc;
 }
@@ -78,10 +78,10 @@ bool gpu_update_display(pixel_map_t pixel_map)
 {
    bool rc = true;
 
-	if(pixel_map == NULL)
-	{
-		rc = false;
-	}
+   if(pixel_map == NULL)
+   {
+      rc = false;
+   }
    else
    {
       /* Background is cleared */
@@ -123,6 +123,6 @@ bool gpu_update_display(pixel_map_t pixel_map)
 **/
 void gpu_shutdown()
 {
-	SDL_DestroyWindow(gpu.window);
-	SDL_Quit();
+   SDL_DestroyWindow(gpu.window);
+   SDL_Quit();
 }
