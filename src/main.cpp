@@ -35,21 +35,30 @@ void log_file_init()
 	init_log_gpu();
 }
 
-int main()
+int main(int argc,char *argv[])
 {
+   /* Initialize the logging library */
    log_file_init();
    std::shared_ptr<spdlog::logger> logger = spdlog::get("main");
+
    logger->info("Booting up Chip-8 ...");
 
-	if(gpu_init() == false)
+   if(argc != 2)
+   {
+      logger->error("No .ch8 ROM file path supplied");
+   }
+   /* Initialize the SDL2 Library and window */
+	else if(gpu_init() == false)
 	{
 		gpu_shutdown();
 	}
+   else
+   {
+      CPU cpu(argv[1]);
+      cpu.run();
+      gpu_shutdown();
+   }
 
-   CPU cpu;
-   cpu.run();
-
-	gpu_shutdown();
 
    return 0;
 }

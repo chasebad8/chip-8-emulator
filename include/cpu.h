@@ -103,7 +103,7 @@ class CPU
       std::shared_ptr<spdlog::logger> logger;
 
    public:
-      CPU();
+      CPU(const char* rom_path);
 
       rc_e      set_pixel_map(uint8_t x, uint8_t y, uint32_t value);
       uint32_t  get_pixel_map(uint8_t x, uint8_t y);

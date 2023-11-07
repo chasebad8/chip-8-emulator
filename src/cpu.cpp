@@ -2,7 +2,7 @@
 #include "cpu.h"
 #include "opcodes.h"
 
-#define MEM_READ_2_BYTES   2
+#define MEM_READ_2_BYTES 2
 
 /**
  * ============================================================================
@@ -325,7 +325,7 @@ opcode_t CPU::fetch()
 */
 rc_e CPU::decode_execute(opcode_t opcode)
 {
-   logger->info("Received opcode: {0:X}", opcode);
+   logger->info("Fetched opcode: {0:X}", opcode);
    execute_opcode(opcode, this);
 
    return SUCCESS;
@@ -427,12 +427,13 @@ rc_e CPU::run()
       }
 
       /* Throttle emulator execution so we run at 60Hz */
+      /* (TODO: This doesn't actually throttle to 60Hz) */
       if((frame_rate = SDL_GetTicks() - reference_tick) < MS_PER_CLK_CYCLE)
       {
          SDL_Delay(MS_PER_CLK_CYCLE - frame_rate);
       }
 
-      /* Non-blocking call to check if any keys were pressed */
+      /* If user clicks close window, exit program */
       while (SDL_PollEvent(&event))
       {
          if (event.type == SDL_QUIT)
@@ -452,8 +453,6 @@ rc_e CPU::run()
 
    } while((running == true));
 
-   gpu_shutdown();
-
    return SUCCESS;
 }
 
@@ -468,79 +467,59 @@ rc_e CPU::run()
  *
  * ============================================================================
 */
-CPU::CPU()
+CPU::CPU(const char* rom_path)
 {
    logger = spdlog::get("main");
    logger->info("Initializing CPU ...");
 
-   /* Initially set all RAM to 0 */
+   update_display = false;
+   pc             = INSTRUCTION_ADDRESS_START;
+
+   /* Clear memory */
    std::fill(std::begin(mem), std::end(mem), 0x00);
+
+   /* Clear CPU Registers */
    std::fill(std::begin(reg), std::end(reg), 0x00);
 
+   /* Clear GPU Pixel map */
    memset(pixel_map, 0, sizeof(pixel_map));
 
-   update_display = false;
-   pc = 0x200;
-
+   /* Load the 9 number sprites into memory starting at address 0x000 */
    for(int i = 0; i < NUM_FONTS; i++)
    {
       mem[i] = font[i];
    }
 
-   //FILE* game = fopen("/home/cb/Downloads/2-ibm-logo.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/test_opcode.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/BC_test.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/particle.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/pong.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/tetris.ch8", "rb");
-   //FILE* game = fopen("/home/cb/Downloads/space_invaders.ch8", "rb");
-   FILE* game = fopen("/home/cb/Downloads/RPS.ch8", "rb");
-
+   /* Copy ROM to memory starting at address 0x200 */
+   logger->info("Copying ROM ({:s}) to memory ...", rom_path);
+   FILE* game = fopen(rom_path, "rb");
    if (!game) {
       logger->error("Unable to open file");
    }
-   fread(&mem[INSTRUCTION_ADDRESS_START], 1, MEMORY_MAX_BYTES - INSTRUCTION_ADDRESS_START, game);
-   fclose(game);
+   else
+   {
+      fread(&mem[INSTRUCTION_ADDRESS_START], 1, MEMORY_MAX_BYTES - INSTRUCTION_ADDRESS_START, game);
+      fclose(game);
+      logger->info("Copy ROM to memory complete!");
+   }
 
-   // /* Store addy 8 into I reg */
-   // mem[512] = 0xA0;
-   // mem[513] = 0x00;
-
-   // /* Print 0 */
-   // mem[514] = 0xD0;
-   // mem[515] = 0x05;
-
-   // /* Store addy 0 into I reg */
-   // mem[516] = 0xA0;
-   // mem[517] = 0x05;
-
-   // /* Print 0 */
-   // mem[518] = 0xD1;
-   // mem[519] = 0x05;
-
-   // /* clear */
-   // mem[520] = 0x00;
-   // mem[521] = 0xE0;
-
+   /* Draw a few random dots (TODO: Remove this) */
    SDL_Delay(1000);
-
    pixel_map[32][16] = 1;
    pixel_map[50][3]  = 1;
-
    gpu_update_display(pixel_map);
-   SDL_Delay(1000);
 
+   SDL_Delay(1000);
    pixel_map[1][30] = 1;
    pixel_map[50][3] = 0;
-
    gpu_update_display(pixel_map);
-   SDL_Delay(1000);
 
+   SDL_Delay(1000);
    pixel_map[32][16] = 0;
    pixel_map[50][3]  = 0;
    pixel_map[1][30]  = 0;
    pixel_map[50][3]  = 0;
-
    gpu_update_display(pixel_map);
+
    SDL_Delay(1000);
 }

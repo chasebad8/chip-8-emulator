@@ -130,27 +130,6 @@ typedef enum opcodes_exxx_e
 
 } opcodes_exxx_e;
 
-/*
-0xxx: These opcodes are either used for system calls, or to manipulate the display.
-1xxx: This opcode is used for an unconditional jump to a specific address.
-2xxx: This opcode is used to call a subroutine at a specific address.
-3xxx: This opcode is used to skip the next instruction if a specific register is equal to a specific value.
-4xxx: This opcode is used to skip the next instruction if a specific register is not equal to a specific value.
-5xxx: This opcode is used to skip the next instruction if two specific registers are equal to each other.
-6xxx: This opcode is used to load a specific value into a specific register.
-7xxx: This opcode is used to add a specific value to a specific register.
-8xxx: This opcode is used for a variety of register-to-register operations.
-9xxx: This opcode is used to skip the next instruction if two specific registers are not equal to each other.
-Axxx: This opcode is used to set the value of the address register to a specific value.
-Bxxx: This opcode is used to jump to a specific address plus the value of register 0.
-Cxxx: This opcode is used to set a specific register to a random value and a specific value.
-Dxxx: This opcode is used to draw a sprite to the screen.
-Ex9E: This opcode is used to skip the next instruction if a specific key is currently pressed.
-ExA1: This opcode is used to skip the next instruction if a specific key is currently not pressed.
-Fxxx: This opcode is used for a variety of operations, such as setting a register to the value of the delay timer,
-      waiting for a key press, or adding a specific register to the address register.
-*/
-
 /* Deprecated. Bad to use bit fields for endianness */
 typedef struct opcode_s
 {
